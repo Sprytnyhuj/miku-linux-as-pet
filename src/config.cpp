@@ -22,7 +22,6 @@ QString configDir()
 }
 
 QString spritesDir() { return configDir() + QStringLiteral("/sprites"); }
-QString apiKeyFile() { return configDir() + QStringLiteral("/api_key"); }
 QString settingsFile() { return configDir() + QStringLiteral("/settings.json"); }
 
 double spriteScale()

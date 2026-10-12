@@ -515,9 +515,7 @@ void Pet::stepImpl()
         }
     } else {
         m_pos.setY(floor);
-        if (m_chatWaiting && m_reactions.empty()) {
-            setAnim(QStringLiteral("ponder"));       // czeka na odpowiedź Claude - zamyślona, stoi w miejscu
-        } else if (m_search->isVisible() && m_reactions.empty()) {
+        if (m_search->isVisible() && m_reactions.empty()) {
             setAnim(QStringLiteral("ponder"));       // wyszukiwarka otwarta: zamyślona z ręką przy buzi
         } else if (!m_reactions.empty()) {
             auto &[name, left] = m_reactions.front();
@@ -812,7 +810,6 @@ void Pet::buildMenu(QMenu &menu)
     addGpuMenu(&menu);
     menu.addSeparator();
     menu.addAction(QStringLiteral("Wróć na środek ekranu"), this, &Pet::returnToCenter);
-    menu.addAction(QStringLiteral("Porozmawiaj z Claude…"), this, &Pet::openChat);
     menu.addSeparator();
     menu.addAction(QStringLiteral("Zakończ"), qApp, [] { markExplicitQuit(); QApplication::quit(); });
 }
@@ -852,23 +849,6 @@ void Pet::launchGame(const SteamGame &game)
         react({{QStringLiteral("surprised"), 20}}, "launch_game");
     else
         react({{QStringLiteral("grumpy"), 48}}, "launch_game_fail");
-}
-
-void Pet::openChat()
-{
-    if (!m_chat) {
-        m_chat = new ChatDialog;
-        // Podłączone sygnałami: czat nic nie wie o postaci.
-        connect(m_chat, &ChatDialog::requestStarted, this, [this] { m_chatWaiting = true; });
-        connect(m_chat, &ChatDialog::requestFinished, this, [this](bool ok) {
-            m_chatWaiting = false;
-            if (ok && m_state == State::Floor)
-                react({{QStringLiteral("cheer"), 36}}, "chat_done");     // przy błędzie API bez radości
-        });
-    }
-    m_chat->show();
-    m_chat->raise();
-    m_chat->activateWindow();
 }
 
 // Co 3 s: zapytanie o utwór (asynchronicznie). Radość przy zmianie tytułu/wykonawcy, tylko gdy postać stoi na podłodze.

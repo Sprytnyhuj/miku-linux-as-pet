@@ -18,9 +18,7 @@ Chibi maskotka na pulpit (C++17 / Qt6 Widgets + DBus + Network).
   (w trybie "Macha porem" bez marudzenia); miękkie lądowanie -> krótki "plask"
   albo zawstydzenie; szybkie kręcenie kółkiem (>= 6 ząbków w 1,5 s) ->
   zamyślona, wesoła, radość; zmiana utworu w odtwarzaczu (MPRIS, sprawdzana
-  co 3 s, nie częściej niż co 8 s, nie podczas przeciągania i spadania) -> radość;
-  czat z Claude: zamyślona w trakcie oczekiwania na odpowiedź, radość po
-  odpowiedzi (przy błędzie API bez radości).
+  co 3 s, nie częściej niż co 8 s, nie podczas przeciągania i spadania) -> radość.
 * Pojedyncze kliknięcie lewym przyciskiem (dymek otwiera się po upływie interwału podwójnego
   kliku systemu, `QApplication::doubleClickInterval()`, domyślnie 400 ms): chmurka nad głową z aktualnym utworem
   i przyciskami ⏮ ⏯ ⏭ oraz suwakiem głośności samej przeglądarki/odtwarzacza
@@ -63,7 +61,7 @@ Chibi maskotka na pulpit (C++17 / Qt6 Widgets + DBus + Network).
   z grawitacją na "podłogę" ekranu, nad którym ją upuszczono.
 * Prawy przycisk myszy: menu z aktualnym utworem (MPRIS przez QtDBus, np. YouTube
   Music w przeglądarce) i przyciskami: poprzedni / odtwórz-pauza / następny,
-  a także "Porozmawiaj z Claude…" i "Zakończ".
+  a także "Zakończ".
 * Pozycja jest zapamiętywana (`position` w `~/.config/desktop-pet/settings.json`: ekran, x, kierunek)
   i po starcie postać wraca na to miejsce; gdy ekranu nie ma, staje na środku głównego.
   Menu: "Wróć na środek ekranu".
@@ -73,9 +71,6 @@ Chibi maskotka na pulpit (C++17 / Qt6 Widgets + DBus + Network).
   a postać się dziwi. Lista pochodzi z `steamapps/libraryfolders.vdf`
   i `appmanifest_*.acf` (tylko odczyt; Steam natywny albo Flatpak), bez narzędzi
   typu Proton / Steam Linux Runtime.
-* Czat z Claude przez API Anthropic (QtNetwork, bez dodatkowych pakietów). Okno
-  w stylu systemowym z dymkami wiadomości; Enter wysyła, Shift+Enter nowa linia.
-  Klucz API: zmienna `ANTHROPIC_API_KEY` albo plik `~/.config/desktop-pet/api_key`.
 
 ## Sprite'y (Shimeji)
 
@@ -98,9 +93,9 @@ nie może samo ustawiać swojej pozycji - robi to launcher.
 Ręcznie: `cmake -S . -B build -G Ninja && cmake --build build && ctest --test-dir build`.
 Wymagane: Qt6 (Widgets, DBus, Network, Test), KF6 Runner (`kf6-krunner-devel`; `install.sh` doinstaluje je w kontenerze `builder`, a na hoście potrzebne są tylko biblioteki uruchomieniowe `kf6-krunner` i pluginy Plasmy), CMake, Ninja, `pactl`, `xprop`, `xdg-mime`.
 
-Kod: `src/` (pet, bubbles, search, searchbubble, mpris, volume, steam, vdf, claudechat, sprites, config),
+Kod: `src/` (pet, bubbles, search, searchbubble, mpris, volume, steam, vdf, sprites, config),
 testy jednostkowe: `tests/tests.cpp`. Tylko jedna instancja naraz (blokada
 `$XDG_RUNTIME_DIR/desktop-pet.lock`); SIGINT/SIGTERM kończą program czysto.
 
 Ukryte opcje do zrzutów ekranu (bez okna na pulpicie, z `QT_QPA_PLATFORM=offscreen`):
-`--screenshot-bubble plik.png`, `--screenshot-chat plik.png`, `--dark`.
+`--screenshot-bubble plik.png`, `--screenshot-temp plik.png`, `--dark`.

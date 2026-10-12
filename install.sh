@@ -101,20 +101,6 @@ if [ "$AUTOSTART" = 1 ]; then
     printf '%s\nX-KDE-autostart-after=panel\n' "$DESKTOP_ENTRY" > "$HOME/.config/autostart/desktop-pet.desktop"
 fi
 
-echo "==> Klucz API Anthropic"
-if [ -s "$CONF_DIR/api_key" ]; then
-    echo "Klucz już zapisany w $CONF_DIR/api_key"
-else
-    read -r -s -p "Wklej klucz API (Enter = pomiń): " KEY || KEY=""
-    echo
-    if [ -n "$KEY" ]; then
-        (umask 077; printf '%s\n' "$KEY" > "$CONF_DIR/api_key")
-        echo "Zapisano w $CONF_DIR/api_key"
-    else
-        echo "Pominięto - wpisz klucz później do $CONF_DIR/api_key"
-    fi
-fi
-
 echo
 echo "Gotowe. Uruchom: desktop-pet"
 echo "Sprite'y Shimeji (shime*.png) wrzuć do: $CONF_DIR/sprites/"

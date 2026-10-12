@@ -1,7 +1,6 @@
-// Testy jednostkowe (QtTest): VDF, biblioteka Steama, ranking MPRIS, odpowiedzi API Claude,
+// Testy jednostkowe (QtTest): VDF, biblioteka Steama, ranking MPRIS,
 // dopasowanie strumieni głośności, ustawienia.
 #include "bubbles.h"
-#include "claudechat.h"
 #include "gpualert.h"
 #include "config.h"
 #include "mpris.h"
@@ -15,6 +14,7 @@
 #include "vdf.h"
 #include "volume.h"
 
+#include <QDialog>
 #include <QSpinBox>
 #include <QDir>
 #include <csignal>
@@ -31,7 +31,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QPointer>
-#include <QSslSocket>
 #include <QTemporaryDir>
 #include <QtTest>
 
@@ -310,8 +309,6 @@ struct PetProbe {
     Mpris &mpris() { return p.m_mpris; }
     MusicBubble *bubble() { return p.m_bubble; }
     SearchBubble *search() { return p.m_search; }
-    void openChat() { p.openChat(); }
-    ChatDialog *chat() { return p.m_chat; }
     bool clickTimerActive() const { return p.m_clickTimer->isActive(); }
     SteamCache &steam() { return p.m_steam; }
     PlayerVolume &volume() { return p.m_volume; }
@@ -1447,9 +1444,9 @@ private slots:
         QTest::qWait(300);
     }
 
-    // Zamknięcie dymków i czatu (Esc, utrata aktywności, close(), X) nie może zakończyć programu:
+    // Zamknięcie dymków (Esc, utrata aktywności, close(), X) nie może zakończyć programu:
     // okna Qt::Tool nie liczą się jako okna główne, więc bez setQuitOnLastWindowClosed(false) program by się wyłączył.
-    void closingBubblesAndChatNeverQuits()
+    void closingBubblesNeverQuits()
     {
         Pet::setupApplication();                          // to samo, co robi main()
         QVERIFY(!QApplication::quitOnLastWindowClosed());
@@ -1484,22 +1481,10 @@ private slots:
         QVERIFY(pr.bubble()->isVisible());
         pr.bubble()->close();
         QVERIFY(!pr.bubble()->isVisible());
-        // czat Claude: zamknięcie przez X (close)
-        pr.openChat();
-        QVERIFY(pr.chat() && pr.chat()->isVisible());
-        pr.chat()->close();
-        QVERIFY(!pr.chat()->isVisible());
         QTest::qWait(300);
         QVERIFY(pet.isVisible());
         QCOMPARE(quitSpy.count(), 0);
         QCOMPARE(lastSpy.count(), 0);
-        // Nawet gdyby postać była chwilowo ukryta, zamknięcie czatu nie kończy programu.
-        pet.hide();
-        pr.openChat();
-        pr.chat()->close();
-        QTest::qWait(100);
-        QCOMPARE(quitSpy.count(), 0);
-        pet.show();
     }
 
     // ---------------------------------------------------------- VDF
@@ -1685,55 +1670,6 @@ private slots:
         QVERIFY(PlayerVolume::matchStreams(all, none).isEmpty());
     }
 
-    // ---------------------------------------------------------- Claude
-    void claudeParseText()
-    {
-        const auto r = parseClaudeReply(200, R"({"stop_reason":"end_turn","content":[
-            {"type":"thinking","thinking":"hmm"},{"type":"text","text":"  Cześć"},
-            {"type":"text","text":", świecie!  "}]})");
-        QVERIFY(r.ok);
-        QCOMPARE(r.text, QStringLiteral("Cześć, świecie!"));
-        QCOMPARE(r.content.size(), 3);   // do historii idą pełne bloki
-    }
-    void claudeParseEmpty()
-    {
-        const auto r = parseClaudeReply(200, R"({"stop_reason":"end_turn","content":[]})");
-        QVERIFY(r.ok);
-        QCOMPARE(r.text, QStringLiteral("(pusta odpowiedź)"));
-    }
-    void claudeParseRefusal()
-    {
-        const auto r = parseClaudeReply(200, R"({"stop_reason":"refusal","content":[{"type":"text","text":"x"}]})");
-        QVERIFY(!r.ok);
-        QCOMPARE(r.text, QStringLiteral("Claude odmówił odpowiedzi na to pytanie."));
-    }
-    void claudeParseErrors()
-    {
-        QCOMPARE(parseClaudeReply(0, {}).text, QStringLiteral("Brak połączenia z API."));
-        QCOMPARE(parseClaudeReply(401, R"({"error":{"message":"x"}})").text, QStringLiteral("Nieprawidłowy klucz API."));
-        QVERIFY(parseClaudeReply(429, {}).text.startsWith(QStringLiteral("Za dużo zapytań")));
-        QCOMPARE(parseClaudeReply(400, R"({"type":"error","error":{"type":"invalid_request_error","message":"zły model"}})").text,
-                 QStringLiteral("Błąd API (400): zły model"));
-        QCOMPARE(parseClaudeReply(500, "Internal Server Error").text, QStringLiteral("Błąd API (500): Internal Server Error"));
-        QCOMPARE(parseClaudeReply(529, {}).text, QStringLiteral("Błąd API (529): nieznany błąd"));
-        // zepsuty JSON przy 200
-        QVERIFY(!parseClaudeReply(200, "{nie json").ok);
-        QVERIFY(parseClaudeReply(200, "{nie json").text.startsWith(QStringLiteral("Błąd API (200)")));
-        QVERIFY(!parseClaudeReply(200, R"({"content":"to nie lista"})").ok);
-        QVERIFY(!parseClaudeReply(200, "[]").ok);
-    }
-    void claudeBody()
-    {
-        const QJsonArray msgs{QJsonObject{{"role", "user"}, {"content", "Hej"}}};
-        const QJsonObject o = QJsonDocument::fromJson(buildClaudeBody(msgs)).object();
-        QCOMPARE(o.value("model").toString(), QStringLiteral("claude-opus-5-5"));
-        QCOMPARE(o.value("max_tokens").toInt(), 16000);
-        QCOMPARE(o.value("system").toString(), cfg::claudeSystem());
-        QCOMPARE(o.value("messages").toArray(), msgs);
-        QCOMPARE(o.value("output_config").toObject().value("effort").toString(), QStringLiteral("low"));
-        QCOMPARE(o.value("fallbacks").toString(), QStringLiteral("default"));
-    }
-
     // ---------------------------------------------------------- ustawienia, sprite'y, tryby
     void settingsKeepOtherKeys()
     {
@@ -1751,11 +1687,6 @@ private slots:
         writeFile(cfg::settingsFile(), QStringLiteral("to nie json"));
         QVERIFY(cfg::loadSettings().isEmpty());
         qunsetenv("XDG_CONFIG_HOME");
-    }
-    void tlsSupport()
-    {
-        qInfo("QSslSocket::supportsSsl = %d, backends: %s", int(QSslSocket::supportsSsl()),
-              qPrintable(QSslSocket::availableBackends().join(QLatin1Char(','))));
     }
     void modesTable()
     {

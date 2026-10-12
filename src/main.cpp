@@ -1,6 +1,5 @@
 // desktop-pet - chibi maskotka na pulpit (C++/Qt6). Opis w README.md.
 #include "bubbles.h"
-#include "claudechat.h"
 #include "config.h"
 #include "pet.h"
 #include "searchhelper.h"
@@ -215,24 +214,6 @@ int screenshotTemp(const QString &file, const QString &variant)
     return saveShot(&bubble, file) ? 0 : 1;
 }
 
-int screenshotChat(const QString &file)
-{
-    ChatDialog dlg;
-    dlg.resize(420, 480);
-    dlg.show();
-    dlg.appendMessage(MessageBubble::User, QStringLiteral("Cześć! Co dziś robisz na moim pulpicie?"));
-    dlg.appendMessage(MessageBubble::Assistant,
-                      QStringLiteral("Cześć! Siedzę sobie nad panelem, machamy porem i pilnuję, żeby "
-                                     "muzyka nie grała za głośno. A Ty nad czym pracujesz?"));
-    dlg.appendMessage(MessageBubble::User, QStringLiteral("Piszę maskotkę w C++.\nZ Qt6!"));
-    dlg.appendMessage(MessageBubble::System,
-                      QStringLiteral("⚠ Brak klucza API - wpisz go do ~/.config/desktop-pet/api_key."));
-    dlg.setTyping(true);
-    QApplication::processEvents();
-    const QImage img = dlg.grab().toImage();
-    return img.save(file) ? 0 : 1;
-}
-
 }  // namespace
 
 int main(int argc, char **argv)
@@ -249,14 +230,12 @@ int main(int argc, char **argv)
         }
     }
     // Ukryte opcje do zrzutów ekranu (zwykle z QT_QPA_PLATFORM=offscreen); bez blokady instancji.
-    QString shotBubble, shotChat, shotTemp, tempVariant = QStringLiteral("a"), scheme;
+    QString shotBubble, shotTemp, tempVariant = QStringLiteral("a"), scheme;
     bool dark = false;
     for (int i = 1; i < argc; ++i) {
         const QByteArray a = argv[i];
         if (a == "--screenshot-bubble" && i + 1 < argc)
             shotBubble = QString::fromLocal8Bit(argv[++i]);
-        else if (a == "--screenshot-chat" && i + 1 < argc)
-            shotChat = QString::fromLocal8Bit(argv[++i]);
         else if (a == "--screenshot-temp" && i + 1 < argc)
             shotTemp = QString::fromLocal8Bit(argv[++i]);
         else if (a == "--temp-variant" && i + 1 < argc)
@@ -268,7 +247,7 @@ int main(int argc, char **argv)
     }
 
     int lockFd = -1;
-    if (shotBubble.isEmpty() && shotChat.isEmpty() && shotTemp.isEmpty()) {
+    if (shotBubble.isEmpty() && shotTemp.isEmpty()) {
         lockFd = singleInstanceLock();
         if (lockFd == -1) {
             std::fprintf(stderr, "desktop-pet: już działa\n");
@@ -286,8 +265,6 @@ int main(int argc, char **argv)
 
     if (!shotBubble.isEmpty())
         return screenshotBubble(shotBubble);
-    if (!shotChat.isEmpty())
-        return screenshotChat(shotChat);
     if (!shotTemp.isEmpty())
         return screenshotTemp(shotTemp, tempVariant);
 

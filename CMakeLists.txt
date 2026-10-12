@@ -27,7 +27,6 @@ add_library(petcore STATIC
     src/search.cpp
     src/searchhelper.cpp
     src/searchbubble.cpp
-    src/claudechat.cpp
     src/pet.cpp
 )
 target_include_directories(petcore PUBLIC src)

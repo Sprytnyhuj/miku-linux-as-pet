@@ -2,7 +2,6 @@
 #pragma once
 
 #include "bubbles.h"
-#include "claudechat.h"
 #include "gpualert.h"
 #include "mpris.h"
 #include "reactions.h"
@@ -77,7 +76,7 @@ class Pet : public QWidget {
     Q_OBJECT
 public:
     Pet();
-    ~Pet() override { delete m_chat; delete m_bubble; delete m_search; delete m_alert; delete m_info; }
+    ~Pet() override { delete m_bubble; delete m_search; delete m_alert; delete m_info; }
     const TickStats &tickStats() const { return m_tickStats; }
     // Ustawienia aplikacji, bez których zamknięcie ostatniego okna Qt::Tool zamknęłoby program (main i testy).
     static void setupApplication();
@@ -126,7 +125,6 @@ private:
     void showMenu(const QPoint &pos);
     void addGamesMenu(QMenu *menu);
     void launchGame(const SteamGame &game);
-    void openChat();
     // Ostrzeżenia o temperaturze GPU (LACT)
     void setGpuAlertEnabled(bool on);
     void setGpuThresholds(int edge, int hotspot);
@@ -156,7 +154,6 @@ private:
     int m_savedDir = 0;
     int m_saveTicks = 0;
     std::unique_ptr<GamesMenuStyle> m_gamesStyle;   // tworzony przy pierwszym menu
-    ChatDialog *m_chat = nullptr;
 
     // state: fall / drag / floor; na podłodze animację wybiera tryb albo reakcja
     State m_state = State::Fall;
@@ -196,5 +193,4 @@ private:
     QString m_logTrack, m_logPlayer;      // ostatnio zapisany w dzienniku odczyt MPRIS (tylko diagnostyka)
     TrackWatcher m_watcher;              // asynchroniczne odpytywanie MPRIS
     QElapsedTimer m_clock;               // zegar monotoniczny dla detektorów
-    bool m_chatWaiting = false;          // czat czeka na odpowiedź API - postać się zamyśla
 };

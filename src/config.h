@@ -24,15 +24,6 @@ inline constexpr int VOLUME_STEP = 5;             // o ile % zmienia głośnoś�
 inline constexpr int BUBBLE_TIMEOUT_MS = 7000;    // chmurka znika po tym czasie (chyba że kursor jest nad nią)
 inline constexpr int BUBBLE_OVERLAP = 14;         // o ile px ogonek chmurki nachodzi na czubek głowy
 
-inline constexpr const char *CLAUDE_MODEL = "claude-opus-5-5";
-inline constexpr const char *CLAUDE_URL = "https://api.anthropic.com/v1/messages";
-inline QString claudeSystem()
-{
-    return QStringLiteral(
-        "Jesteś małą, sympatyczną maskotką chibi mieszkającą na pulpicie użytkownika. "
-        "Odpowiadasz krótko, ciepło i po polsku, chyba że użytkownik pisze w innym języku.");
-}
-
 // Steam: pierwszy istniejący folder z steamapps/ to instalacja (natywna albo Flatpak).
 inline constexpr int STEAM_RESCAN_S = 30;   // co tyle sekund lista gier czytana od nowa (albo po zmianie folderu)
 inline constexpr int STEAM_ICON_PX = 24;    // ikonki gier w menu
@@ -46,7 +37,6 @@ inline int pyRound(double v) { return static_cast<int>(std::nearbyint(v)); }
 // Ścieżki (XDG_CONFIG_HOME ma pierwszeństwo przed ~/.config).
 QString configDir();
 QString spritesDir();
-QString apiKeyFile();
 QString settingsFile();
 
 // Skala sprite'ów z DESKTOP_PET_SCALE (domyślnie 1.0).
